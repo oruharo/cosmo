@@ -1,4 +1,4 @@
-# cosmoctl
+# cosmoctlx
 
 A command line utirities to manage COSMO resources.
 It is able to do the same thing +α with COSMO Dashboard by CLI.
