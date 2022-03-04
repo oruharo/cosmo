@@ -1,46 +1,44 @@
 name: release
 on:
   push:
-    tags:
-      - "v*.*.*"
+    # tags:
+    #   - "v*.*.*"
+    branches:
+      - main
 jobs:
-  variables:
-    runs-on: ubuntu-latest
-    steps:
-      - id: version
-        run: echo "::set-output name=version::${GITHUB_REF##*/}"
-    outputs:
-      version: ${{ steps.version.outputs.version }}
+  # variables:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - id: version
+  #       run: echo "::set-output name=version::${GITHUB_REF##*/}"
+  #   outputs:
+  #     version: ${{ steps.version.outputs.version }}
 
-  test:
+  release_drafter:
     runs-on: ubuntu-latest
-    needs: variables
-    steps:
-      - name: Use Variables
-        run: echo $VERSION
-        env:
-          VERSION: ${{ needs.variables.outputs.version }}
-      - name: Use Variables2
-        run: echo ${{ needs.variables.outputs.version }}
-
-  update_release_draft:
-    runs-on: ubuntu-latest
-    needs:
-      - variables
-      # - goreleaser
+    # needs:
+    # - variables
+    # - goreleaser
     steps:
       - uses: release-drafter/release-drafter@v5
         with:
-          version: ${{ needs.variables.outputs.version }}
+          # version: ${{ needs.variables.outputs.version }}
           disable-autolabeler: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  test:
+    runs-on: ubuntu-latest
+    needs:
+      - release_drafter
+    steps:
+      - name: Use Variables2
+        run: echo ${{ needs.release_drafter.outputs.version }}
+
   goreleaser:
     runs-on: ubuntu-latest
     needs:
-      - variables
-      - update_release_draft
+      - release_drafter
     steps:
       - name: Checkout
         uses: actions/checkout@master
@@ -52,22 +50,15 @@ jobs:
         uses: goreleaser/goreleaser-action@v2
         with:
           distribution: goreleaser
-          version: ${{ needs.variables.outputs.version }}
+          version: ${{ needs.release_drafter.outputs.version }}
           args: release --rm-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  testw:
-    runs-on: ubuntu-latest
-    needs: update_release_draft
-    steps:
-      - run: echo ${{ needs.update_release_draft.outputs.id }}
-      - run: echo ${{ needs.update_release_draft.outputs.name }}
-      - run: echo ${{ needs.update_release_draft.outputs.tag_name }}
-      - run: echo ${{ needs.update_release_draft.outputs.tag_name }}
-
   controller-manager:
     runs-on: ubuntu-latest
+    needs:
+      - release_drafter
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -90,12 +81,14 @@ jobs:
         with:
           push: true
           file: dockerfile/controller-manager.Dockerfile
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ needs.release_drafter.outputs.version }}
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
 
   dashboard:
     runs-on: ubuntu-latest
+    needs:
+      - release_drafter
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -124,6 +117,8 @@ jobs:
 
   auth-proxy:
     runs-on: ubuntu-latest
+    needs:
+      - release_drafter
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
