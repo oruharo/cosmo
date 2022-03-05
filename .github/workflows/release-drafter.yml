@@ -1,24 +1,36 @@
 name: Release Drafter
 
 on:
-  push:
-    tags:
-      - "v*.*.*"
+  # push:
+  #   # tags:
+  #   #   - "v*.*.*"
+  #   branches:
+  #     - main
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
 
 jobs:
   update_release_draft:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
-      # (Optional) GitHub Enterprise requires GHE_HOST variable set
-      #- name: Set GHE_HOST
-      #  run: |
-      #    echo "GHE_HOST=${GITHUB_SERVER_URL##https:\/\/}" >> $GITHUB_ENV
-
-      # Drafts your next Release notes as Pull Requests are merged into "master"
-      - uses: release-drafter/release-drafter@v5
-        # (Optional) specify config name to use, relative to .github/. Default: release-drafter.yml
-        # with:
-        #   config-name: my-config.yml
-        #   disable-autolabeler: true
+      - id: release_drafter
+        uses: release-drafter/release-drafter@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/checkout@v2
+
+      - name: update-version
+        run: |
+          make update-version VERSION=${{ steps.release_drafter.outputs.tag_name }}
+
+      - name: Commit updates
+        uses: EndBug/add-and-commit@v7
+        with:
+          branch: main
+          message: "Bump version: ${{ steps.release_drafter.outputs.tag_name }}"
+          # add: "['src/global.js', 'package.json', 'package-lock.json']"
