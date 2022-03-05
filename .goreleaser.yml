@@ -21,6 +21,5 @@ archives:
     format: tar.gz
 release:
   draft: true
-  prerelease: true
 changelog:
   skip: true
