@@ -21,6 +21,6 @@ archives:
     format: tar.gz
 release:
   draft: true
-  prerelease: "true"
+  prerelease: auto
 changelog:
   skip: true
