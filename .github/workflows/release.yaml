@@ -1,10 +1,7 @@
 name: release
 on:
-  # push:
-  #   tags:
-  #   - 'v*.*.*'
   release:
-    types: [published]
+    types: [prereleased]
 jobs:
   goreleaser:
     if: "github.event.release.prerelease"
@@ -27,6 +24,7 @@ jobs:
       - name: release-drafter
         uses: release-drafter/release-drafter@v5
         with:
+          prerelease: true
           version: ${{ github.event.release.tag_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
