@@ -41,13 +41,13 @@ jobs:
       - name: tag
         run: |
           git tag "${{ needs.fix_version.outputs.version }}"
-          #git push origin "${{ steps.release_drafter.outputs.tag_name }}"
+          # git push origin "${{ needs.fix_version.outputs.version }}"
       - name: GoReleaser
         uses: goreleaser/goreleaser-action@v2
         with:
           distribution: goreleaser
           version: latest
-          args: release --rm-dist --debug
+          args: release --rm-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # GITHUB_REF: refs/tags/${{ needs.fix_version.outputs.version }}
