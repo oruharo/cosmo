@@ -21,6 +21,7 @@ jobs:
           branch: main
           message: "Bump version: ${{ steps.release_drafter.outputs.tag_name }}"
           tag: "${{ steps.release_drafter.outputs.tag_name }}"
+          push: true
     outputs:
       version: ${{ steps.release_drafter.outputs.tag_name }}
 
