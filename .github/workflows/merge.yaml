@@ -1,0 +1,31 @@
+name: On PR merge to main branch
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+
+jobs:
+  Release_drafter_and_Update_version:
+    # on merge
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - id: release_drafter
+        uses: release-drafter/release-drafter@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/checkout@v2
+      - name: Update-version
+        run: |
+          # sed -e "s/VERSION \?= v[0-9]\+.[0-9]\+.[0-9]/VERSION ?= ${{ steps.release_drafter.outputs.tag_name }}" ./Makefile
+          make update-version VERSION=${{ steps.release_drafter.outputs.tag_name }}
+      - name: Commit updates
+        uses: EndBug/add-and-commit@v7
+        with:
+          branch: main
+          message: "Bump version: ${{ steps.release_drafter.outputs.tag_name }}"
