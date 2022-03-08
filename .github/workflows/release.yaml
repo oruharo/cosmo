@@ -20,8 +20,10 @@ jobs:
         with:
           branch: main
           message: "Bump version: ${{ steps.release_drafter.outputs.tag_name }}"
-          tag: "${{ steps.release_drafter.outputs.tag_name }} --force"
-          push: true
+      - name: push tag
+        run: |
+          git tag "${{ steps.release_drafter.outputs.tag_name }}"
+          git push origin "${{ steps.release_drafter.outputs.tag_name }}"
     outputs:
       version: ${{ steps.release_drafter.outputs.tag_name }}
 
