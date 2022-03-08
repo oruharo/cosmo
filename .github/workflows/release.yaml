@@ -20,7 +20,7 @@ jobs:
         with:
           branch: main
           message: "Bump version: ${{ steps.release_drafter.outputs.tag_name }}"
-          tag: "${{ steps.release_drafter.outputs.tag_name }}"
+          tag: "${{ steps.release_drafter.outputs.tag_name }} --force"
           push: true
     outputs:
       version: ${{ steps.release_drafter.outputs.tag_name }}
