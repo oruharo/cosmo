@@ -39,6 +39,14 @@ jobs:
         run: |
           git tag "${{ needs.fix_version.outputs.version }}"
           git push origin "${{ needs.fix_version.outputs.version }}"
+      - name: delete release
+        uses: actions/github-script@v4
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const { owner, repo } = context.repo
+            const { data: { id } } = await github.repos.getLatestRelease({ owner, repo })
+            await github.repos.deleteRelease({ owner, repo, release_id: id })
       - name: GoReleaser
         uses: goreleaser/goreleaser-action@v2
         with:
