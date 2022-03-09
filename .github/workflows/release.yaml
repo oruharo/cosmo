@@ -38,7 +38,7 @@ jobs:
       - name: push tag
         run: |
           git tag "${{ needs.fix_version.outputs.version }}"
-          git push origin "${{ needs.fix_version.outputs.version }}"
+          # git push origin "${{ needs.fix_version.outputs.version }}"
       # - name: delete release
       #   uses: actions/github-script@v4
       #   with:
