@@ -233,6 +233,7 @@ metadata:
   annotations:
     workspace.cosmo-workspace.github.io/deployment: workspace
     workspace.cosmo-workspace.github.io/ingress: workspace
+    workspace.cosmo-workspace.github.io/ingressroute: \"\"
     workspace.cosmo-workspace.github.io/service: workspace
     workspace.cosmo-workspace.github.io/service-main-port: main
     workspace.cosmo-workspace.github.io/urlbase: \"\"
@@ -404,6 +405,7 @@ Flags:
       --workspace                                 template as type workspace
       --workspace-deployment-name string          Deployment name for Workspace. use with --workspace (auto detected if not specified)
       --workspace-ingress-name string             Ingress name for Workspace. use with --workspace (auto detected if not specified)
+      --workspace-ingressroute-name string        IngressRoute name for Workspace. use with --workspace (auto detected if not specified)
       --workspace-main-service-port-name string   ServicePort name for Workspace main container port. use with --workspace (auto detected if not specified)
       --workspace-service-name string             Service name for Workspace. use with --workspace (auto detected if not specified)
       --workspace-urlbase string                  Workspace URLBase. use with --workspace (use default urlbase in cosmo-controller-manager if not specified)

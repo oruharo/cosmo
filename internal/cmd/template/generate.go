@@ -61,6 +61,7 @@ func generateCmd(cmd *cobra.Command, cliOpt *cmdutil.CliOptions) *cobra.Command 
 
 	cmd.Flags().BoolVar(&o.TypeWorkspace, "workspace", false, "template as type workspace")
 	cmd.Flags().BoolVar(&o.DisableInjectAuthProxy, "disable-inject-auth-proxy", false, "disable injection cosmo-auth-proxy sidecar")
+	// cmd.Flags().MarkDeprecated("disable-inject-auth-proxy", "please use --xxxxxxx instead")
 	cmd.Flags().StringVar(&o.InjectAuthProxyImage, "inject-auth-proxy-image", "ghcr.io/cosmo-workspace/cosmo-auth-proxy:latest", "cosmo-auth-proxy sidecar image. use with --workspace")
 	cmd.Flags().StringVar(&o.InjectAuthProxyTLSSecretName, "inject-auth-proxy-tls-secret", "", "TLS secret name for https sidecar cosmo-auth-proxy. Be empty if http. use with --workspace")
 	cmd.Flags().StringVar(&o.ServiceAccount, "serviceaccount", "default", "service account name for cosmo-auth-proxy rolebinding")
@@ -68,6 +69,7 @@ func generateCmd(cmd *cobra.Command, cliOpt *cmdutil.CliOptions) *cobra.Command 
 	cmd.Flags().StringVar(&o.wsConfig.DeploymentName, "workspace-deployment-name", "", "Deployment name for Workspace. use with --workspace (auto detected if not specified)")
 	cmd.Flags().StringVar(&o.wsConfig.ServiceName, "workspace-service-name", "", "Service name for Workspace. use with --workspace (auto detected if not specified)")
 	cmd.Flags().StringVar(&o.wsConfig.IngressName, "workspace-ingress-name", "", "Ingress name for Workspace. use with --workspace (auto detected if not specified)")
+	cmd.Flags().StringVar(&o.wsConfig.IngressRouteName, "workspace-ingressroute-name", "", "IngressRoute name for Workspace. use with --workspace (auto detected if not specified)")
 	cmd.Flags().StringVar(&o.wsConfig.ServiceMainPortName, "workspace-main-service-port-name", "", "ServicePort name for Workspace main container port. use with --workspace (auto detected if not specified)")
 	cmd.Flags().StringVar(&o.wsConfig.URLBase, "workspace-urlbase", "", "Workspace URLBase. use with --workspace (use default urlbase in cosmo-controller-manager if not specified)")
 

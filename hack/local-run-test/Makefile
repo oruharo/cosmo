@@ -27,12 +27,16 @@ PARENT_URLBASE ?= $(shell echo $(VSCODE_PROXY_URI) | grep -Po "(?<=://)[^\.]*")
 DOMAIN ?= $(shell echo $(VSCODE_PROXY_URI) | grep -Po "(?<=\.)[^/]*")
 DEFAULT_URLBASE_HOST := {{NETRULE_GROUP}}-{{INSTANCE}}-{{USER_NAME}}-k3d-$(PARENT_URLBASE)
 DASHBOARD_URL := dash-k3d-$(PARENT_URLBASE).$(DOMAIN)
+ARGOCD_URL := argocd-k3d-$(PARENT_URLBASE).$(DOMAIN)
+AUTHENTICATE_URL := https://authenticate-k3d-$(PARENT_URLBASE).$(DOMAIN)/cosmo-auth-server
 
 show-url: ## show-url
 	@echo ----------------------------------------------------
 	@echo DEFAULT_URLBASE_HOST=$(DEFAULT_URLBASE_HOST)
 	@echo DASHBOARD_URL=$(DASHBOARD_URL)
 	@echo TRAEFIK_DASHBOARD_URL=traefik-dashboard-k3d-$(PARENT_URLBASE).$(DOMAIN)/
+	@echo AUTHENTICATE_URL=$(AUTHENTICATE_URL)
+	@echo ARGOCD_URL=$(ARGOCD_URL)
 	@echo ----------------------------------------------------
 
 ##---------------------------------------------------------------------
@@ -63,8 +67,10 @@ create-k3d-cluster: k3d kubectl  ## Create k3s cluster.
 			-i rancher/k3s:v1.26.3-k3s1 \
 			--api-port 43000 \
 			-p "15000:80@loadbalancer" \
-			-p "15080:80@loadbalancer" \
 			-p "15443:443@loadbalancer" \
+			-p "32080:32080@loadbalancer" \
+			-p "32443:32443@loadbalancer" \
+			-p "30080:30080@loadbalancer" \
 			--registry-create cosmo.io:0.0.0.0:5000 \
 			--agents 2 \
 			--k3s-arg "-v=2@server:*" \
@@ -78,12 +84,54 @@ deploy-cert-manager: create-k3d-cluster helm ## Deploy cert-manager.
 	helm upgrade --install cert-manager jetstack/cert-manager --namespace cert-manager \
 		--create-namespace --version v1.10.0 --set installCRDs=true --wait
 
-deploy-traefik: create-k3d-cluster helm docker-build-traefik-plugins ## Deploy traefik.
+deploy-traefik: create-k3d-cluster helm docker-build-traefik-plugins docker-build-auth-server ## Deploy traefik.
 	@echo ====== $@ ======
 	helm dependency update ../../charts/cosmo-traefik 
 	helm upgrade --install traefik ../../charts/cosmo-traefik -n kube-system \
 		--wait \
+		--set domain=$(DOMAIN) \
+		--set authServer.redirectUrl=$(AUTHENTICATE_URL) \
 	 	-f ./charts/traefik.values.yaml
+
+deploy-argocd: create-k3d-cluster helm ## Deploy argocd.
+	@echo ====== $@ ======
+	helm repo add argo https://argoproj.github.io/argo-helm
+	helm repo update
+	helm upgrade --install -n argocd --create-namespace argocd argo/argo-cd \
+		--set configs.params."server\.insecure"=true \
+		--set configs.params."application\.namespaces"="cosmo-user-*" \
+		--set server.service.type=NodePort
+		--wait
+	@echo ====== wait argocd ======
+	until (kubectl get po -n argocd -l app.kubernetes.io/name=argocd-server  | grep argocd-server) do sleep 1; done
+	kubectl wait po -n argocd -l app.kubernetes.io/name=argocd-server --for condition=Ready
+	kubectl get po -A
+	@$(MAKE) argocd-setting
+
+undeploy-argocd: ## Undeploy argocd.
+	helm uninstall -n argocd argocd
+
+ARGOCD_LOCAL_URL := localhost:30080
+argocd-setting: argocd
+	@echo ====== $@ ======
+	@argocd login $(ARGOCD_LOCAL_URL) --grpc-web --plaintext --username admin --password vvvvvvvv > /dev/null 2>&1 && \
+		echo "Initial password has already been changed" || { \
+		echo ====== login argocd ====== && \
+		argocd login $(ARGOCD_LOCAL_URL) --grpc-web --plaintext --username admin \
+			--password $(shell kubectl -n argocd get secret/argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d) && \
+		echo ====== argocd password change ====== && \
+		argocd account update-password \
+		--account admin \
+		--current-password $(shell kubectl -n argocd get secret/argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d) \
+		--new-password vvvvvvvv && \
+		echo "Initial password has been changed" \
+		; \
+	}
+	@echo ----------------------------------------------------
+	@echo "url  : https://$(ARGOCD_URL)"
+	@echo "user : admin"
+	@echo "pass : vvvvvvvv"
+	@echo ----------------------------------------------------
 
 create-cluster: create-k3d-cluster deploy-cert-manager deploy-traefik  ## Create k3s cluster.
 
@@ -99,6 +147,7 @@ IMAGE_TAG ?= latest
 MANAGER_IMAGE_TAG   ?= $(IMAGE_TAG)
 DASHBOARD_IMAGE_TAG ?= $(IMAGE_TAG)
 AUTHPROXY_IMAGE_TAG ?= $(IMAGE_TAG)
+AUTHSERVER_IMAGE_TAG ?= $(IMAGE_TAG)
 TRAEFIK_PLUGINS_IMAGE_TAG ?= $(IMAGE_TAG)
 
 .PHONY: docker-build-manager docker-build-dashboard docker-build-auth-proxy docker-build-traefik-plugins docker-cache-clear
@@ -123,6 +172,14 @@ docker-build-auth-proxy: ## build & push cosmo auth-proxy image.
 	docker tag cosmo-auth-proxy:$(AUTHPROXY_IMAGE_TAG) localhost:5000/cosmo-auth-proxy:$(AUTHPROXY_IMAGE_TAG)
 	docker push localhost:5000/cosmo-auth-proxy:$(AUTHPROXY_IMAGE_TAG)
 	k3d image import localhost:5000/cosmo-auth-proxy:$(AUTHPROXY_IMAGE_TAG) -c $(CLUSTER_NAME)
+
+docker-build-auth-server: ## build & push cosmo auth-server image.
+	@echo ====== $@ ======
+	cd ../.. && make docker-build-auth-server VERSION=$(AUTHSERVER_IMAGE_TAG) QUICK_BUILD=yes
+	docker tag cosmo-auth-server:$(AUTHSERVER_IMAGE_TAG) localhost:5000/cosmo-auth-server:$(AUTHSERVER_IMAGE_TAG)
+	docker push localhost:5000/cosmo-auth-server:$(AUTHSERVER_IMAGE_TAG)
+	k3d image import localhost:5000/cosmo-auth-server:$(AUTHSERVER_IMAGE_TAG) -c $(CLUSTER_NAME)
+	-kubectl rollout restart deploy -n kube-system traefik
 
 docker-build-traefik-plugins: ## build & push cosmo traefik-plugins image.
 	@echo ====== $@ ======
@@ -161,7 +218,7 @@ install-manager: helm kubectl create-cluster docker-build-manager ## Install cos
 		--set defaultURLBase.domain="\$(DOMAIN)" \
 		--set logLevel=$(LOGLEVEL)
 
-install-manager-local: helm kubectl create-cluster ## Install cosmo contoller-manager resources.
+install-manager-local: helm kubectl ## Install cosmo contoller-manager resources.
 	@echo ====== $@ ======
 	helm upgrade --install cosmo-controller-manager ../../charts/cosmo-controller-manager \
 		-n cosmo-system --create-namespace \
@@ -210,6 +267,7 @@ apply-template: kubectl cosmoctl docker-build-cs ## Apply template.
 	until (kubectl apply -f ../../config/user-addon/auth-proxy/user-addon-cosmo-auth-proxy-role.yaml) do sleep 1; done
 	until (kubectl apply -f ../../example/fixed-efs-pv-useraddon.yaml) do sleep 1; done
 	$(MAKE) -C templates/code-server-01 apply
+	$(MAKE) -C templates/code-server-02 apply
 	# $(MAKE) -C templates/example apply
 
 BASEURL := https://$(DASHBOARD_URL)
@@ -222,17 +280,18 @@ add-user: kubectl cosmoctl
 	-cosmoctl user create team-b-dev --role "team-b-dev" 2> /dev/null
 	-cosmoctl user create team-b-admin --role "team-b-admin" 2> /dev/null
 	-cosmoctl user create team-ab-dev --role "team-a-dev,team-b-dev" 2> /dev/null
-	export PASSWORD=`cosmoctl user reset-password tom | grep -Po "(?<=New password: ).*"` && \
-	bash -c 'until ( \
-		curl -L -c bin/cookie.txt -X POST -H "Content-Type: application/json" \
-		$(BASEURL)/dashboard.v1alpha1.AuthService/Login \
-		-d "{\"userName\":\"tom\",\"password\":\"$${PASSWORD}\"}" \
-	) do sleep 1; done' && \
-	bash -c ' \
-		curl -L -b bin/cookie.txt -X POST -H "Content-Type: application/json" \
-		$(BASEURL)/dashboard.v1alpha1.UserService/UpdateUserPassword \
-		-d "{\"userName\":\"tom\",\"currentPassword\":\"$${PASSWORD}\",\"newPassword\": \"vvv\"}" \
-	'
+	cosmoctl user reset-password tom --password vvv
+	# export PASSWORD=`cosmoctl user reset-password tom | grep -Po "(?<=New password: ).*"` && \
+	# bash -c 'until ( \
+	# 	curl -L -c bin/cookie.txt -X POST -H "Content-Type: application/json" \
+	# 	$(BASEURL)/dashboard.v1alpha1.AuthService/Login \
+	# 	-d "{\"userName\":\"tom\",\"password\":\"$${PASSWORD}\"}" \
+	# ) do sleep 1; done' && \
+	# bash -c ' \
+	# 	curl -L -b bin/cookie.txt -X POST -H "Content-Type: application/json" \
+	# 	$(BASEURL)/dashboard.v1alpha1.UserService/UpdateUserPassword \
+	# 	-d "{\"userName\":\"tom\",\"currentPassword\":\"$${PASSWORD}\",\"newPassword\": \"vvv\"}" \
+	# '
 
 
 add-workspace: kubectl cosmoctl
@@ -246,6 +305,15 @@ add-workspace: kubectl cosmoctl
 	-cosmoctl networkrule add proxy13 --user=tom --workspace=ws1 --port=7701 --group proxy1 --path /bbb --public
 	sleep 1
 	-cosmoctl networkrule add proxy21 --user=tom --workspace=ws1 --port=7701 --group proxy2 --path /
+	-cosmoctl workspace create --user=tom --template=code-server-02 ws2
+	sleep 5
+	-cosmoctl networkrule add proxy11 --user=tom --workspace=ws2 --port=7701 --group proxy1 --path /
+	sleep 1
+	-cosmoctl networkrule add proxy12 --user=tom --workspace=ws2 --port=7701 --group proxy1 --path /aaa
+	sleep 1
+	-cosmoctl networkrule add proxy13 --user=tom --workspace=ws2 --port=7701 --group proxy1 --path /bbb --public
+	sleep 1
+	-cosmoctl networkrule add proxy21 --user=tom --workspace=ws2 --port=7701 --group proxy2 --path /
 
 ##---------------------------------------------------------------------
 ##@ Execute test
@@ -339,6 +407,11 @@ bin/kubectl:
 	curl -L -o $@ "https://storage.googleapis.com/kubernetes-release/release/$(KUBE_VER)/bin/linux/amd64/kubectl"
 	chmod +x $@
 
+argocd: bin bin/argocd ## argocd
+bin/argocd:
+	curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+	sudo install -m 555 argocd-linux-amd64 bin/argocd
+	rm -f argocd-linux-amd64
 
 ##---------------------------------------------------------------------
 ##@ Utility

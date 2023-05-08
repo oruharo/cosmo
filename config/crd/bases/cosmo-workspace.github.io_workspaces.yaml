@@ -99,6 +99,8 @@ spec:
                     type: string
                   ingressName:
                     type: string
+                  ingressRouteName:
+                    type: string
                   mainServicePortName:
                     type: string
                   serviceName:

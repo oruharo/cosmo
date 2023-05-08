@@ -16,6 +16,7 @@ generate-go: $(GOBIN)/buf $(GOBIN)/protoc-gen-connect-go $(GOBIN)/protoc-gen-go 
 
 generate-ts: $(GOBIN)/buf $(NODEBIN)/protoc-gen-es $(NODEBIN)/protoc-gen-connect-web
 	buf generate ./proto/auth-proxy-apis --template buf.gen/buf.gen.ts.auth-proxy-ui.yaml
+	buf generate ./proto/auth-server-apis --template buf.gen/buf.gen.ts.auth-server-ui.yaml
 	buf generate ./proto/dashboard-apis  --template buf.gen/buf.gen.ts.dashboard-ui.yaml
 
 ##---------------------------------------------------------------------

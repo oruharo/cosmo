@@ -8,8 +8,9 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "cosmo-dashboard.labels" . | nindent 4 }}
-  {{- with .Values.ingress.annotations }}
   annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: kube-system-cosmo-auth@kubernetescrd
+  {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:

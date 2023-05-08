@@ -1,4 +1,4 @@
-FROM_TAG=4.3.0
+FROM_TAG=4.12.0
 
 #URLBASE ?= 'https://{{NETRULE_GROUP}}-{{INSTANCE}}-{{NAMESPACE}}.domain'
 

@@ -3,6 +3,7 @@ kind: Ingress
 metadata:
   name: workspace
 spec:
+  ingressClassName: traefik
   rules:
     - host: main-{{INSTANCE}}-{{NAMESPACE}}.domain
       http:

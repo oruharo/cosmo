@@ -2,6 +2,32 @@
 
 traefik:
   deployment:
+    additionalContainers:
+      - name: cosmo-auth-server
+        image: cosmo.io:5000/cosmo-auth-server:latest
+        args:
+          - --port=8450
+          - --zap-log-level=info
+          - --zap-time-encoding=iso8601
+          - --cookie-domain=$(COOKIE_DOMAIN)
+          - --cookie-hashkey=$(COOKIE_HASHKEY)
+          - --cookie-blockkey=$(COOKIE_BLOCKKEY)
+          - --redirect-url=$(REDIRECT_URL)
+          - --insecure
+        ports:
+          - containerPort: 8450
+            name: cosmo-auth
+            protocol: TCP
+        envFrom:
+          - secretRef:
+              name: traefik-cosmo-auth-server
+      # - name: test-container
+      #   image: k8s.gcr.io/busybox
+      #   command: ["/bin/sh", "-c", "env"]
+      #   envFrom:
+      #     - secretRef:
+      #         name: traefik-cosmo-auth-server
+
     initContainers:
       - name: copy-plugins
         image: "cosmo.io:5000/traefik-plugins:latest"
@@ -13,3 +39,4 @@ traefik:
 
   service:
     type: LoadBalancer
+    # type: NodePort

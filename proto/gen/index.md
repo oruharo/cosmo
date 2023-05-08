@@ -8,6 +8,13 @@
   
     - [AuthProxyService](#authproxy-v1alpha1-AuthProxyService)
   
+- [auth-server/v1alpha1/authserver.proto](#auth-server_v1alpha1_authserver-proto)
+    - [LoginRequest](#authserver-v1alpha1-LoginRequest)
+    - [LoginResponse](#authserver-v1alpha1-LoginResponse)
+    - [VerifyResponse](#authserver-v1alpha1-VerifyResponse)
+  
+    - [AuthService](#authserver-v1alpha1-AuthService)
+  
 - [dashboard/v1alpha1/auth_service.proto](#dashboard_v1alpha1_auth_service-proto)
     - [LoginRequest](#dashboard-v1alpha1-LoginRequest)
     - [LoginResponse](#dashboard-v1alpha1-LoginResponse)
@@ -114,6 +121,84 @@
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
 | Login | [LoginRequest](#authproxy-v1alpha1-LoginRequest) | [.google.protobuf.Empty](#google-protobuf-Empty) |  |
+
+ 
+
+
+
+<a name="auth-server_v1alpha1_authserver-proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## auth-server/v1alpha1/authserver.proto
+
+
+
+<a name="authserver-v1alpha1-LoginRequest"></a>
+
+### LoginRequest
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| user_name | [string](#string) |  |  |
+| password | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="authserver-v1alpha1-LoginResponse"></a>
+
+### LoginResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| user_name | [string](#string) |  |  |
+| expire_at | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
+| require_password_update | [bool](#bool) |  |  |
+
+
+
+
+
+
+<a name="authserver-v1alpha1-VerifyResponse"></a>
+
+### VerifyResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| user_name | [string](#string) |  |  |
+| expire_at | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
+| require_password_update | [bool](#bool) |  |  |
+
+
+
+
+
+ 
+
+ 
+
+ 
+
+
+<a name="authserver-v1alpha1-AuthService"></a>
+
+### AuthService
+
+
+| Method Name | Request Type | Response Type | Description |
+| ----------- | ------------ | ------------- | ------------|
+| Login | [LoginRequest](#authserver-v1alpha1-LoginRequest) | [LoginResponse](#authserver-v1alpha1-LoginResponse) | ID and password to login |
+| Logout | [.google.protobuf.Empty](#google-protobuf-Empty) | [.google.protobuf.Empty](#google-protobuf-Empty) | Delete session to logout |
+| Verify | [.google.protobuf.Empty](#google-protobuf-Empty) | [VerifyResponse](#authserver-v1alpha1-VerifyResponse) | Verify authorization |
 
  
 

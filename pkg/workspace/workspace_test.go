@@ -61,6 +61,7 @@ func TestPatchWorkspaceInstanceAsDesired(t *testing.T) {
 						Config: cosmov1alpha1.Config{
 							DeploymentName:      "ws-deploy",
 							IngressName:         "ws-ing",
+							IngressRouteName:    "ws-ingRoute",
 							ServiceName:         "ws-svc",
 							ServiceMainPortName: "main",
 						},
@@ -93,6 +94,7 @@ func TestPatchWorkspaceInstanceAsDesired(t *testing.T) {
 						Config: cosmov1alpha1.Config{
 							DeploymentName:      "ws-deploy",
 							IngressName:         "ws-ing",
+							IngressRouteName:    "ws-ingRoute",
 							ServiceName:         "ws-svc",
 							ServiceMainPortName: "main",
 						},
@@ -125,6 +127,7 @@ func TestPatchWorkspaceInstanceAsDesired(t *testing.T) {
 						Config: cosmov1alpha1.Config{
 							DeploymentName:      "ws-deploy",
 							IngressName:         "ws-ing",
+							IngressRouteName:    "ws-ingRoute",
 							ServiceName:         "ws-svc",
 							ServiceMainPortName: "main",
 						},

@@ -18,7 +18,8 @@ spec:
             - sh
             - -c
             - |
-              /usr/bin/entrypoint.sh --log debug --auth=none --bind-addr 0.0.0.0:18080 .
+              export VSCODE_PROXY_URI=https://{{port}}-proxy-{{INSTANCE}}-{{USER_NAME}}-k3d-main-aa-cosmo2-hashiro.cosmo4.goblab51.com; \
+              /usr/bin/entrypoint.sh --log debug --auth=none --bind-addr 0.0.0.0:18080 --app-name=cosmo .
           securityContext:
             runAsUser: 1000
           ports:

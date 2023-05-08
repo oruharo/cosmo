@@ -5,6 +5,7 @@ metadata:
   annotations:
     workspace.cosmo-workspace.github.io/deployment: workspace
     workspace.cosmo-workspace.github.io/ingress: workspace
+    workspace.cosmo-workspace.github.io/ingressroute: ""
     workspace.cosmo-workspace.github.io/service: workspace
     workspace.cosmo-workspace.github.io/service-main-port: main
     workspace.cosmo-workspace.github.io/urlbase: ""
@@ -69,7 +70,9 @@ spec:
             - sh
             - -c
             - |
-              /usr/bin/entrypoint.sh --log debug --auth=none --bind-addr 0.0.0.0:18080 .
+              export VSCODE_PROXY_URI=https://{{port}}-proxy-{{INSTANCE}}-{{USER_NAME}}-k3d-main-aa-cosmo2-hashiro.cosmo4.goblab51.com; \
+              export GPG_TTY=$(tty); \
+              /usr/bin/entrypoint.sh --log debug --auth=none --bind-addr 0.0.0.0:18080 --app-name=cosmo .
             image: cosmo.io:5000/my-code-server:latest
             imagePullPolicy: Always
             livenessProbe:
@@ -105,6 +108,7 @@ spec:
       name: '{{INSTANCE}}-workspace'
       namespace: '{{NAMESPACE}}'
     spec:
+      ingressClassName: traefik
       rules:
       - host: main-{{INSTANCE}}-{{NAMESPACE}}.domain
         http:

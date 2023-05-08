@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: workspace
+spec:
+  type: ClusterIP
+  ports:
+    - name: main
+      port: 18080
+      protocol: TCP
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: headers
+spec:
+  headers:
+    customRequestHeaders:
+      X-Cosmo-UserName: "{{USER_NAME}}"
+    customResponseHeaders:
+      X-Cosmo-UserName: ""
+---
+#
+# IngressRoute
+#
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: workspace
+spec:
+  entryPoints:
+    - web
+  routes:
+    - kind: Rule
+      match: "Host(`main-{{INSTANCE}}-{{USER_NAME}}-k3d-main-aa-cosmo2-hashiro.cosmo4.goblab51.com`)"
+      middlewares:
+        - name: "{{INSTANCE}}-headers"
+        - name: cosmo-auth
+          namespace: kube-system
+      priority: 10
+      services:
+        - name: "{{INSTANCE}}-workspace"
+          port: main

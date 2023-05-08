@@ -8,6 +8,7 @@ MANAGER_VERSION   ?= $(VERSION)
 DASHBOARD_VERSION ?= $(VERSION)
 COSMOCTL_VERSION  ?= $(VERSION)
 AUTHPROXY_VERSION ?= $(VERSION)
+AUTHSERVER_VERSION ?= $(VERSION)
 TRAEFIK_PLUGINS_VERSION ?= $(VERSION)
 
 
@@ -17,6 +18,7 @@ CHART_DASHBOARD_VERSION ?= $(DASHBOARD_VERSION)
 IMG_MANAGER ?= cosmo-controller-manager:$(MANAGER_VERSION)
 IMG_DASHBOARD ?= cosmo-dashboard:$(DASHBOARD_VERSION)
 IMG_AUTHPROXY ?= cosmo-auth-proxy:$(AUTHPROXY_VERSION)
+IMG_AUTHSERVER ?= cosmo-auth-server:$(AUTHSERVER_VERSION)
 IMG_TRAEFIK_PLUGINS ?= traefik-plugins:$(TRAEFIK_PLUGINS_VERSION)
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:generateEmbeddedObjectMeta=true"
@@ -203,6 +205,10 @@ dashboard: go generate fmt vet ## Build dashboard binary.
 auth-proxy: go generate fmt vet ## Build auth-proxy binary.
 	CGO_ENABLED=0 $(GO) build -o bin/auth-proxy ./cmd/auth-proxy/main.go
 
+.PHONY: auth-server
+auth-server: go generate fmt vet ## Build auth-server binary.
+	CGO_ENABLED=0 $(GO) build -o bin/auth-server ./cmd/auth-server/main.go
+
 .PHONY: update-version
 update-version: kustomize ## Update version in version.go.
 ifndef VERSION
@@ -218,6 +224,7 @@ endif
 	sed -i.bk -e "s/v[0-9]\+.[0-9]\+.[0-9]\+.* cosmo-workspace/${DASHBOARD_VERSION} cosmo-workspace/" ./cmd/dashboard/main.go
 	sed -i.bk -e "s/v[0-9]\+.[0-9]\+.[0-9]\+.* cosmo-workspace/${COSMOCTL_VERSION} cosmo-workspace/" ./internal/cmd/root_cmd.go
 	sed -i.bk -e "s/v[0-9]\+.[0-9]\+.[0-9]\+.* cosmo-workspace/${AUTHPROXY_VERSION} cosmo-workspace/" ./cmd/auth-proxy/main.go
+	sed -i.bk -e "s/v[0-9]\+.[0-9]\+.[0-9]\+.* cosmo-workspace/${AUTHSERVER_VERSION} cosmo-workspace/" ./internal/auth-server/root.go
 	cd config/manager && kustomize edit set image controller=${IMG_MANAGER}
 	cd config/dashboard && kustomize edit set image dashboard=${IMG_DASHBOARD}
 	sed -i.bk \
@@ -260,6 +267,20 @@ run-auth-proxy: go generate fmt vet manifests ## Run auth-proxy against the conf
 run-auth-proxy-ui: ## Run auth-proxy-ui.
 	cd web/auth-proxy-ui && yarn install && yarn dev --port 3010
 
+.PHONY: run-auth-server
+run-auth-server: go generate fmt vet manifests ## Run auth-server against the configured Kubernetes cluster in ~/.kube/config.
+	$(GO) run ./cmd/auth-server/main.go \
+		--zap-log-level $(LOG_LEVEL) \
+		--zap-time-encoding=iso8601 \
+		--cookie-domain=$(DOMAIN) \
+		--cookie-hashkey=$(shell cat /dev/urandom | base64 | fold -w 32 | head -n 1) \
+		--cookie-blockkey=$(shell cat /dev/urandom | base64 | fold -w 32 | head -n 1) \
+		--insecure
+
+.PHONY: run-auth-server-ui
+run-auth-server-ui: ## Run auth-server-ui.
+	cd web/auth-proxy-ui && yarn install && yarn dev
+
 .PHONY: run
 run: go generate fmt vet manifests ## Run controller-manager against the configured Kubernetes cluster in ~/.kube/config.
 	$(GO) run ./cmd/controller-manager/main.go \
@@ -272,7 +293,7 @@ run: go generate fmt vet manifests ## Run controller-manager against the configu
 ##@ Docker build
 ##---------------------------------------------------------------------
 .PHONY: docker-build
-docker-build: docker-build-manager docker-build-dashboard docker-build-auth-proxy docker-build-traefik-plugins ## Build the docker image.
+docker-build: docker-build-manager docker-build-dashboard docker-build-auth-proxy docker-build-auth-server docker-build-traefik-plugins ## Build the docker image.
 
 .PHONY: docker-build-manager
 docker-build-manager: test ## Build the docker image for controller-manager.
@@ -285,6 +306,10 @@ docker-build-dashboard: test ## Build the docker image for dashboard.
 .PHONY: docker-build-auth-proxy
 docker-build-auth-proxy: test ## Build the docker image for auth-proxy.
 	DOCKER_BUILDKIT=1 docker build . -t ${IMG_AUTHPROXY} -f dockerfile/auth-proxy.Dockerfile
+
+.PHONY: docker-build-auth-server
+docker-build-auth-server: test ## Build the docker image for auth-proxy.
+	DOCKER_BUILDKIT=1 docker build . -t ${IMG_AUTHSERVER} -f dockerfile/auth-server.Dockerfile
 
 .PHONY: docker-build-traefik-plugins
 docker-build-traefik-plugins: test ## Build the docker image for traefik-plugins.
@@ -308,6 +333,10 @@ docker-push-dashboard: docker-build-dashboard ## push cosmo dashboard image.
 docker-push-auth-proxy: docker-build-auth-proxy ## push cosmo auth-proxy image.
 	docker tag ${IMG_AUTHPROXY} ${REGISTORY}/${IMG_AUTHPROXY}
 	docker push ${REGISTORY}/${IMG_AUTHPROXY}
+
+docker-push-auth-server: docker-build-auth-server ## push cosmo auth-proxy image.
+	docker tag ${IMG_AUTHSERVER} ${REGISTORY}/${IMG_AUTHSERVER}
+	docker push ${REGISTORY}/${IMG_AUTHSERVER}
 
 docker-push-traefik-plugins: docker-build-traefik-plugins ## push cosmo traefik-plugins image.
 	docker tag ${IMG_TRAEFIK_PLUGINS} ${REGISTORY}/${IMG_TRAEFIK_PLUGINS}
@@ -371,19 +400,18 @@ HELM ?= $(LOCALBIN)/helm
 
 KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
 .PHONY: kustomize
-kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
-$(KUSTOMIZE): $(LOCALBIN)
-	rm -f $(KUSTOMIZE)
+kustomize: $(LOCALBIN) $(KUSTOMIZE) ## Download kustomize locally if necessary.
+$(KUSTOMIZE):
 	curl -s $(KUSTOMIZE_INSTALL_SCRIPT) | bash -s -- $(subst v,,$(KUSTOMIZE_VERSION)) $(LOCALBIN)
 
 .PHONY: controller-gen
-controller-gen: go $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
-$(CONTROLLER_GEN): $(LOCALBIN)
+controller-gen: go $(LOCALBIN) $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
+$(CONTROLLER_GEN):
 	GOBIN=$(LOCALBIN) $(GO) install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_TOOLS_VERSION)
 
 .PHONY: envtest
-envtest: go $(ENVTEST) ## Download envtest-setup locally if necessary.
-$(ENVTEST): $(LOCALBIN)
+envtest: go $(LOCALBIN) $(ENVTEST) ## Download envtest-setup locally if necessary.
+$(ENVTEST):
 	GOBIN=$(LOCALBIN) $(GO) install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
 
 .PHONY: go

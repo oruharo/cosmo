@@ -63,7 +63,8 @@ Usage:
   cosmoctl user reset-password USER_NAME [flags]
 
 Flags:
-  -h, --help   help for reset-password
+  -h, --help              help for reset-password
+      --password string   new password (default: random string)
 
 Global Flags:
       --context string      kube-context (default: current context)
@@ -759,7 +760,8 @@ Usage:
   cosmoctl user reset-password USER_NAME [flags]
 
 Flags:
-  -h, --help   help for reset-password
+  -h, --help              help for reset-password
+      --password string   new password (default: random string)
 
 Global Flags:
       --context string      kube-context (default: current context)
@@ -778,7 +780,8 @@ Usage:
   cosmoctl user reset-password USER_NAME [flags]
 
 Flags:
-  -h, --help   help for reset-password
+  -h, --help              help for reset-password
+      --password string   new password (default: random string)
 
 Global Flags:
       --context string      kube-context (default: current context)
@@ -797,7 +800,8 @@ Usage:
   cosmoctl user reset-password USER_NAME [flags]
 
 Flags:
-  -h, --help   help for reset-password
+  -h, --help              help for reset-password
+      --password string   new password (default: random string)
 
 Global Flags:
       --context string      kube-context (default: current context)

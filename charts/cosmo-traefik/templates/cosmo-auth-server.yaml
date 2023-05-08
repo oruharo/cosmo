@@ -1,0 +1,65 @@
+{{- if .Values.authServer.ingress.enabled -}}
+{{- $fullName := include "traefik.fullname" . -}}
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ $fullName }}-cosmo-auth-server
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "traefik.labels" . | nindent 4 }}
+  {{- with .Values.authServer.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  entryPoints:
+    - web
+    - websecure
+  routes:
+    - kind: Rule
+      match: HostRegexp(`{host:^authenticate.*$}`)
+      services:
+        - kind: Service
+          name: {{ $fullName }}-cosmo-auth-server
+          namespace: {{ .Release.Namespace }}
+          port: cosmo-auth-server
+          scheme: http
+{{- end }}
+---
+{{- $fullName := include "traefik.fullname" . -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}-cosmo-auth-server
+  namespace: {{ .Release.Namespace }}
+spec:
+  type: {{ .Values.authServer.service.type }}
+  ports:
+    - name: cosmo-auth-server
+      port: {{ .Values.authServer.service.port }}
+      targetPort: cosmo-auth
+      protocol: TCP
+  selector:
+    app.kubernetes.io/instance: traefik-kube-system
+    app.kubernetes.io/name: traefik
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ $fullName }}-cosmo-auth-server
+  namespace: {{ .Release.Namespace }}
+stringData:
+  COOKIE_DOMAIN: {{ .Values.domain }}
+  COOKIE_HASHKEY: {{ randAlphaNum 64 }}
+  COOKIE_BLOCKKEY: {{ randAlphaNum 32 }}
+  REDIRECT_URL: {{ .Values.authServer.redirectUrl }}
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: cosmo-auth
+  namespace: kube-system
+spec:
+  forwardAuth:
+    address: http://localhost:8450/auth
+    trustForwardHeader: true

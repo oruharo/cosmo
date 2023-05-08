@@ -1,0 +1,108 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: cosmo-user-tom
+  name: whoami
+  labels:
+    app: whoami
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: whoami
+  template:
+    metadata:
+      labels:
+        app: whoami
+    spec:
+      containers:
+        - name: whoami
+          image: containous/whoami
+---
+#
+# Service
+#
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: cosmo-user-tom
+  name: whoami
+  labels:
+    app: whoami
+spec:
+  ports:
+    - name: http
+      port: 80
+  selector:
+    app: whoami
+---
+#
+# IngressRoute whoami
+#
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  namespace: cosmo-user-tom
+  name: whoami
+  labels:
+    app: whoami
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`whoami-k3d-main-aa-cosmo2-hashiro.cosmo4.goblab51.com`)
+      kind: Rule
+      services:
+        - name: whoami
+          port: 80
+---
+#
+# Auth Middleware
+#
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: forwardauth
+  namespace: kube-system
+spec:
+  forwardAuth:
+    address: http://localhost:8450/auth
+    # address: https://p3010-aa-cosmo2-hashiro.cosmo4.goblab51.com/auth
+    # address: http://aa-cosmo2-workspace.cosmo-user-hashiro.svc.cluster.local:9999/auth
+    trustForwardHeader: true
+    # authResponseHeaders:
+    #   - X-authentik-username
+    #   - X-authentik-groups
+    #   - X-authentik-email
+    #   - X-authentik-name
+    #   - X-authentik-uid
+    #   - X-authentik-jwt
+    #   - X-authentik-meta-jwks
+    #   - X-authentik-meta-outpost
+    #   - X-authentik-meta-provider
+    #   - X-authentik-meta-app
+    #   - X-authentik-meta-version
+---
+#
+# IngressRoute whoami + ahthentik-header
+#
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  namespace: cosmo-user-tom
+  name: whoami12
+  labels:
+    app: whoami
+spec:
+  entryPoints:
+    - web
+  routes:
+    - kind: Rule
+      match: "Host(`whoami12-k3d-main-aa-cosmo2-hashiro.cosmo4.goblab51.com`)"
+      middlewares:
+        - name: forwardauth
+          namespace: kube-system
+      priority: 10
+      services:
+        - name: whoami
+          port: 80

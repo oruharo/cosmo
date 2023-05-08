@@ -1,0 +1,337 @@
+
+[TestServer_setupRouter/#00 - 1]
+&http.ServeMux{
+    mu: sync.RWMutex{},
+    m:  {
+        "/auth": {
+            h:       http.HandlerFunc {...},
+            pattern: "/auth",
+        },
+        "/cosmo-auth-server/": {
+            h:       http.HandlerFunc {...},
+            pattern: "/cosmo-auth-server/",
+        },
+        "/cosmo-auth-server/authserver.v1alpha1.AuthService/": {
+            h:       http.HandlerFunc {...},
+            pattern: "/cosmo-auth-server/authserver.v1alpha1.AuthService/",
+        },
+    },
+    es: {
+        {
+            h:       http.HandlerFunc {...},
+            pattern: "/cosmo-auth-server/authserver.v1alpha1.AuthService/",
+        },
+        {
+            h:       http.HandlerFunc {...},
+            pattern: "/cosmo-auth-server/",
+        },
+    },
+    hosts: false,
+}
+---
+
+[TestServer_setupRouter/#00 - 2]
+&authserver.Server{
+    Log: &clog.Logger{
+        Logger: logr.Logger{
+            sink: &log.DelegatingLogSink{
+                lock:    sync.RWMutex{},
+                logger:  log.NullLogSink{},
+                promise: &log.loggerPromise{
+                    logger:        &log.DelegatingLogSink{(CYCLIC REFERENCE)},
+                    childPromises: nil,
+                    promisesLock:  sync.Mutex{},
+                    name:          &"authserver",
+                    tags:          nil,
+                },
+                info: logr.RuntimeInfo{},
+            },
+            level: 0,
+        },
+    },
+    Klient:              kosmo.Client{},
+    GracefulShutdownDur: 0,
+    ResponseTimeout:     0,
+    StaticFileDir:       "",
+    Port:                0,
+    MaxAgeSeconds:       0,
+    SessionName:         "",
+    CookieDomain:        "",
+    CookieHashKey:       "",
+    CookieBlockKey:      "",
+    RedirectUrl:         "",
+    TLSPrivateKeyPath:   "",
+    TLSCertPath:         "",
+    Insecure:            false,
+    Authorizers:         {},
+    http:                &http.Server{
+        Addr:                         "",
+        Handler:                      http.HandlerFunc {...},
+        DisableGeneralOptionsHandler: false,
+        TLSConfig:                    (*tls.Config)(nil),
+        ReadTimeout:                  0,
+        ReadHeaderTimeout:            0,
+        WriteTimeout:                 0,
+        IdleTimeout:                  0,
+        MaxHeaderBytes:               0,
+        TLSNextProto:                 {},
+        ConnState:                    func(net.Conn, http.ConnState) {...},
+        ErrorLog:                     (*log.Logger)(nil),
+        BaseContext:                  func(net.Listener) context.Context {...},
+        ConnContext:                  func(context.Context, net.Conn) context.Context {...},
+        inShutdown:                   atomic.Bool{},
+        disableKeepAlives:            atomic.Bool{},
+        nextProtoOnce:                sync.Once{},
+        nextProtoErr:                 nil,
+        mu:                           sync.Mutex{},
+        listeners:                    {},
+        activeConn:                   {},
+        onShutdown:                   nil,
+        listenerGroup:                sync.WaitGroup{},
+    },
+    sessionStore: nil,
+}
+---
+
+[TestServer_setupSessionStore/#00 - 1]
+&authserver.Server{
+    Log: &clog.Logger{
+        Logger: logr.Logger{
+            sink: &log.DelegatingLogSink{
+                lock:    sync.RWMutex{},
+                logger:  log.NullLogSink{},
+                promise: &log.loggerPromise{
+                    logger:        &log.DelegatingLogSink{(CYCLIC REFERENCE)},
+                    childPromises: nil,
+                    promisesLock:  sync.Mutex{},
+                    name:          &"authserver",
+                    tags:          nil,
+                },
+                info: logr.RuntimeInfo{},
+            },
+            level: 0,
+        },
+    },
+    Klient:              kosmo.Client{},
+    GracefulShutdownDur: 0,
+    ResponseTimeout:     0,
+    StaticFileDir:       "",
+    Port:                0,
+    MaxAgeSeconds:       0,
+    SessionName:         "",
+    CookieDomain:        "",
+    CookieHashKey:       "",
+    CookieBlockKey:      "",
+    RedirectUrl:         "",
+    TLSPrivateKeyPath:   "",
+    TLSCertPath:         "",
+    Insecure:            false,
+    Authorizers:         {},
+    http:                &http.Server{},
+    sessionStore:        &sessions.CookieStore{
+        Codecs: {
+            &securecookie.SecureCookie{
+                hashKey:   {},
+                hashFunc:  func() hash.Hash {...},
+                blockKey:  {},
+                block:     nil,
+                maxLength: 4096,
+                maxAge:    0,
+                minAge:    0,
+                err:       securecookie.cookieError{
+                    typ:   1,
+                    msg:   "",
+                    cause: aes.KeySizeError(0),
+                },
+                sz:       securecookie.GobEncoder{},
+                timeFunc: func() int64 {...},
+            },
+        },
+        Options: &sessions.Options{Path:"/", Domain:"", MaxAge:0, Secure:false, HttpOnly:true, SameSite:2},
+    },
+}
+---
+
+[TestServer_setupSessionStore/#01 - 1]
+&authserver.Server{
+    Log: &clog.Logger{
+        Logger: logr.Logger{
+            sink: &log.DelegatingLogSink{
+                lock:    sync.RWMutex{},
+                logger:  log.NullLogSink{},
+                promise: &log.loggerPromise{
+                    logger:        &log.DelegatingLogSink{(CYCLIC REFERENCE)},
+                    childPromises: nil,
+                    promisesLock:  sync.Mutex{},
+                    name:          &"authserver",
+                    tags:          nil,
+                },
+                info: logr.RuntimeInfo{},
+            },
+            level: 0,
+        },
+    },
+    Klient:              kosmo.Client{},
+    GracefulShutdownDur: 0,
+    ResponseTimeout:     0,
+    StaticFileDir:       "",
+    Port:                0,
+    MaxAgeSeconds:       0,
+    SessionName:         "",
+    CookieDomain:        "",
+    CookieHashKey:       "abcde",
+    CookieBlockKey:      "efghi",
+    RedirectUrl:         "",
+    TLSPrivateKeyPath:   "",
+    TLSCertPath:         "",
+    Insecure:            false,
+    Authorizers:         {},
+    http:                &http.Server{},
+    sessionStore:        &sessions.CookieStore{
+        Codecs: {
+            &securecookie.SecureCookie{
+                hashKey:   {0x61, 0x62, 0x63, 0x64, 0x65},
+                hashFunc:  func() hash.Hash {...},
+                blockKey:  {0x65, 0x66, 0x67, 0x68, 0x69},
+                block:     nil,
+                maxLength: 4096,
+                maxAge:    0,
+                minAge:    0,
+                err:       securecookie.cookieError{
+                    typ:   1,
+                    msg:   "",
+                    cause: aes.KeySizeError(5),
+                },
+                sz:       securecookie.GobEncoder{},
+                timeFunc: func() int64 {...},
+            },
+        },
+        Options: &sessions.Options{Path:"/", Domain:"", MaxAge:0, Secure:false, HttpOnly:true, SameSite:2},
+    },
+}
+---
+
+[TestServer_timeoutHandler/#00 - 1]
+&http.timeoutHandler{
+    handler:     http.HandlerFunc {...},
+    body:        "",
+    dt:          0,
+    testContext: nil,
+}
+---
+
+[TestServer_Start/#00 - 1]
+&authserver.Server{
+    Log: &clog.Logger{
+        Logger: logr.Logger{
+            sink: &log.DelegatingLogSink{
+                lock:    sync.RWMutex{},
+                logger:  log.NullLogSink{},
+                promise: &log.loggerPromise{
+                    logger:        &log.DelegatingLogSink{(CYCLIC REFERENCE)},
+                    childPromises: nil,
+                    promisesLock:  sync.Mutex{},
+                    name:          &"authserver",
+                    tags:          nil,
+                },
+                info: logr.RuntimeInfo{},
+            },
+            level: 0,
+        },
+    },
+    Klient:              kosmo.Client{},
+    GracefulShutdownDur: 0,
+    ResponseTimeout:     0,
+    StaticFileDir:       "",
+    Port:                0,
+    MaxAgeSeconds:       0,
+    SessionName:         "",
+    CookieDomain:        "",
+    CookieHashKey:       "",
+    CookieBlockKey:      "",
+    RedirectUrl:         "",
+    TLSPrivateKeyPath:   "",
+    TLSCertPath:         "",
+    Insecure:            false,
+    Authorizers:         {},
+    http:                &http.Server{
+        Addr:                         "",
+        Handler:                      http.HandlerFunc {...},
+        DisableGeneralOptionsHandler: false,
+        TLSConfig:                    &tls.Config{
+            Rand:                        nil,
+            Time:                        func() time.Time {...},
+            Certificates:                nil,
+            NameToCertificate:           {},
+            GetCertificate:              func(*tls.ClientHelloInfo) (*tls.Certificate, error) {...},
+            GetClientCertificate:        func(*tls.CertificateRequestInfo) (*tls.Certificate, error) {...},
+            GetConfigForClient:          func(*tls.ClientHelloInfo) (*tls.Config, error) {...},
+            VerifyPeerCertificate:       func([][]uint8, [][]*x509.Certificate) error {...},
+            VerifyConnection:            func(tls.ConnectionState) error {...},
+            RootCAs:                     (*x509.CertPool)(nil),
+            NextProtos:                  {"h2", "http/1.1"},
+            ServerName:                  "",
+            ClientAuth:                  0,
+            ClientCAs:                   (*x509.CertPool)(nil),
+            InsecureSkipVerify:          false,
+            CipherSuites:                nil,
+            PreferServerCipherSuites:    true,
+            SessionTicketsDisabled:      false,
+            SessionTicketKey:            {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0},
+            ClientSessionCache:          nil,
+            MinVersion:                  0x0,
+            MaxVersion:                  0x0,
+            CurvePreferences:            nil,
+            DynamicRecordSizingDisabled: false,
+            Renegotiation:               0,
+            KeyLogWriter:                nil,
+            mutex:                       sync.RWMutex{},
+            sessionTicketKeys:           nil,
+            autoSessionTicketKeys:       nil,
+        },
+        ReadTimeout:       0,
+        ReadHeaderTimeout: 0,
+        WriteTimeout:      0,
+        IdleTimeout:       0,
+        MaxHeaderBytes:    0,
+        TLSNextProto:      {"h2":func(*http.Server, *tls.Conn, http.Handler) {...}},
+        ConnState:         func(net.Conn, http.ConnState) {...},
+        ErrorLog:          (*log.Logger)(nil),
+        BaseContext:       func(net.Listener) context.Context {...},
+        ConnContext:       func(context.Context, net.Conn) context.Context {...},
+        inShutdown:        atomic.Bool{},
+        disableKeepAlives: atomic.Bool{},
+        nextProtoOnce:     sync.Once{
+            done: 0x1,
+            m:    sync.Mutex{},
+        },
+        nextProtoErr:  nil,
+        mu:            sync.Mutex{},
+        listeners:     {},
+        activeConn:    {},
+        onShutdown:    {func() {...}},
+        listenerGroup: sync.WaitGroup{},
+    },
+    sessionStore: &sessions.CookieStore{
+        Codecs: {
+            &securecookie.SecureCookie{
+                hashKey:   {},
+                hashFunc:  func() hash.Hash {...},
+                blockKey:  {},
+                block:     nil,
+                maxLength: 4096,
+                maxAge:    0,
+                minAge:    0,
+                err:       securecookie.cookieError{
+                    typ:   1,
+                    msg:   "",
+                    cause: aes.KeySizeError(0),
+                },
+                sz:       securecookie.GobEncoder{},
+                timeFunc: func() int64 {...},
+            },
+        },
+        Options: &sessions.Options{Path:"/", Domain:"", MaxAge:0, Secure:false, HttpOnly:true, SameSite:2},
+    },
+}
+---
