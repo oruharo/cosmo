@@ -2,6 +2,7 @@
 ## 機能面のTODO
 - auth-server
     - パスワード変更機能をDashboardから移設
+    - LDAP認証追加
 - dashboard
     - ログイン・ログアウト・パスワード変更機能を削除
     - auth-serverなどのproviderメニューへのリンクを追加
