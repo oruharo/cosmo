@@ -562,6 +562,484 @@ SnapShot = 'internal: failed to list users'
 ['Dashboard server [User] [GetUsers] ❌ fail with authorization by role: Entry: normal-user 1']
 SnapShot = 'permission_denied'
 
+['Dashboard server [User] [UpdateUserAddons] ✅ success in normal context: admin attach custom-role to normal-user 1']
+SnapShot = """
+{
+  \"message\": \"Successfully updated\",
+  \"user\": {
+    \"name\": \"updad-noaddon\",
+    \"auth_type\": \"password-secret\",
+    \"addons\": [
+      {
+        \"template\": \"user-tmpl1\",
+        \"vars\": {
+          \"HOGE\": \"FUGA\"
+        }
+      }
+    ]
+  }
+}
+"""
+
+['Dashboard server [User] [UpdateUserAddons] ✅ success in normal context: admin attach custom-role to normal-user 2']
+SnapShot = """
+{
+  \"Name\": \"updad-noaddon\",
+  \"Namespace\": \"\",
+  \"Spec\": {
+    \"authType\": \"password-secret\"
+  },
+  \"Status\": {
+    \"namespace\": {}
+  }
+}
+"""
+
+['Dashboard server [User] [UpdateUserAddons] ✅ success in normal context: admin attach custom-role to normal-user 3']
+SnapShot = """
+{
+  \"Name\": \"updad-noaddon\",
+  \"Namespace\": \"\",
+  \"Spec\": {
+    \"authType\": \"password-secret\",
+    \"addons\": [
+      {
+        \"template\": {
+          \"name\": \"user-tmpl1\"
+        },
+        \"vars\": {
+          \"HOGE\": \"FUGA\"
+        }
+      }
+    ]
+  },
+  \"Status\": {
+    \"namespace\": {}
+  }
+}
+"""
+
+['Dashboard server [User] [UpdateUserAddons] ✅ success in normal context: admin attach custom-role to other team user 1']
+SnapShot = """
+permission_denied: denied to access 'otherteam' group"""
+
+['Dashboard server [User] [UpdateUserAddons] ✅ success in normal context: priv attach cosmo-admin to normal-user 1']
+SnapShot = """
+{
+  \"message\": \"Successfully updated\",
+  \"user\": {
+    \"name\": \"normal-user\",
+    \"display_name\": \"お名前\",
+    \"roles\": [
+      \"team-developer\"
+    ],
+    \"auth_type\": \"password-secret\",
+    \"addons\": [
+      {
+        \"template\": \"user-tmpl1\",
+        \"vars\": {
+          \"HOGE\": \"FUGA\"
+        }
+      }
+    ]
+  }
+}
+"""
+
+['Dashboard server [User] [UpdateUserAddons] ✅ success in normal context: priv attach cosmo-admin to normal-user 2']
+SnapShot = """
+{
+  \"Name\": \"normal-user\",
+  \"Namespace\": \"\",
+  \"Spec\": {
+    \"displayName\": \"お名前\",
+    \"roles\": [
+      {
+        \"name\": \"team-developer\"
+      }
+    ],
+    \"authType\": \"password-secret\"
+  },
+  \"Status\": {
+    \"namespace\": {}
+  }
+}
+"""
+
+['Dashboard server [User] [UpdateUserAddons] ✅ success in normal context: priv attach cosmo-admin to normal-user 3']
+SnapShot = """
+{
+  \"Name\": \"normal-user\",
+  \"Namespace\": \"\",
+  \"Spec\": {
+    \"displayName\": \"お名前\",
+    \"roles\": [
+      {
+        \"name\": \"team-developer\"
+      }
+    ],
+    \"authType\": \"password-secret\",
+    \"addons\": [
+      {
+        \"template\": {
+          \"name\": \"user-tmpl1\"
+        },
+        \"vars\": {
+          \"HOGE\": \"FUGA\"
+        }
+      }
+    ]
+  },
+  \"Status\": {
+    \"namespace\": {}
+  }
+}
+"""
+
+['Dashboard server [User] [UpdateUserAddons] ✅ success in normal context: priv detach role from priv 1']
+SnapShot = """
+{
+  \"message\": \"Successfully updated\",
+  \"user\": {
+    \"name\": \"priv-user\",
+    \"display_name\": \"特権\",
+    \"roles\": [
+      \"cosmo-admin\"
+    ],
+    \"auth_type\": \"password-secret\",
+    \"addons\": [
+      {
+        \"template\": \"user-tmpl1\",
+        \"vars\": {
+          \"HOGE\": \"FUGA\"
+        }
+      }
+    ]
+  }
+}
+"""
+
+['Dashboard server [User] [UpdateUserAddons] ✅ success in normal context: priv detach role from priv 2']
+SnapShot = """
+{
+  \"Name\": \"priv-user\",
+  \"Namespace\": \"\",
+  \"Spec\": {
+    \"displayName\": \"特権\",
+    \"roles\": [
+      {
+        \"name\": \"cosmo-admin\"
+      }
+    ],
+    \"authType\": \"password-secret\"
+  },
+  \"Status\": {
+    \"namespace\": {}
+  }
+}
+"""
+
+['Dashboard server [User] [UpdateUserAddons] ✅ success in normal context: priv detach role from priv 3']
+SnapShot = """
+{
+  \"Name\": \"priv-user\",
+  \"Namespace\": \"\",
+  \"Spec\": {
+    \"displayName\": \"特権\",
+    \"roles\": [
+      {
+        \"name\": \"cosmo-admin\"
+      }
+    ],
+    \"authType\": \"password-secret\",
+    \"addons\": [
+      {
+        \"template\": {
+          \"name\": \"user-tmpl1\"
+        },
+        \"vars\": {
+          \"HOGE\": \"FUGA\"
+        }
+      }
+    ]
+  },
+  \"Status\": {
+    \"namespace\": {}
+  }
+}
+"""
+
+['Dashboard server [User] [UpdateUserAddons] ❌ fail with authorization by role: admin user cannot attach other team role 1']
+SnapShot = """
+{
+  \"message\": \"Successfully updated\",
+  \"user\": {
+    \"name\": \"updad-noaddon\",
+    \"auth_type\": \"password-secret\",
+    \"addons\": [
+      {
+        \"template\": \"user-tmpl1\",
+        \"vars\": {
+          \"HOGE\": \"FUGA\"
+        }
+      }
+    ]
+  }
+}
+"""
+
+['Dashboard server [User] [UpdateUserAddons] ❌ fail with authorization by role: admin user cannot attach other team role 2']
+SnapShot = """
+{
+  \"Name\": \"updad-noaddon\",
+  \"Namespace\": \"\",
+  \"Spec\": {
+    \"authType\": \"password-secret\"
+  },
+  \"Status\": {
+    \"namespace\": {}
+  }
+}
+"""
+
+['Dashboard server [User] [UpdateUserAddons] ❌ fail with authorization by role: admin user cannot attach other team role 3']
+SnapShot = """
+{
+  \"Name\": \"updad-noaddon\",
+  \"Namespace\": \"\",
+  \"Spec\": {
+    \"authType\": \"password-secret\",
+    \"addons\": [
+      {
+        \"template\": {
+          \"name\": \"user-tmpl1\"
+        },
+        \"vars\": {
+          \"HOGE\": \"FUGA\"
+        }
+      }
+    ]
+  },
+  \"Status\": {
+    \"namespace\": {}
+  }
+}
+"""
+
+['Dashboard server [User] [UpdateUserAddons] ❌ fail with authorization by role: admin user cannot attach other team role 4']
+SnapShot = """
+{
+  \"message\": \"Successfully updated\",
+  \"user\": {
+    \"name\": \"updad-team-dev\",
+    \"roles\": [
+      \"team-developer\"
+    ],
+    \"auth_type\": \"password-secret\",
+    \"addons\": [
+      {
+        \"template\": \"user-tmpl1\",
+        \"vars\": {
+          \"HOGE\": \"FUGA\"
+        }
+      }
+    ]
+  }
+}
+"""
+
+['Dashboard server [User] [UpdateUserAddons] ❌ fail with authorization by role: admin user cannot attach other team role 5']
+SnapShot = """
+{
+  \"Name\": \"updad-team-dev\",
+  \"Namespace\": \"\",
+  \"Spec\": {
+    \"roles\": [
+      {
+        \"name\": \"team-developer\"
+      }
+    ],
+    \"authType\": \"password-secret\"
+  },
+  \"Status\": {
+    \"namespace\": {}
+  }
+}
+"""
+
+['Dashboard server [User] [UpdateUserAddons] ❌ fail with authorization by role: admin user cannot attach other team role 6']
+SnapShot = """
+{
+  \"Name\": \"updad-team-dev\",
+  \"Namespace\": \"\",
+  \"Spec\": {
+    \"roles\": [
+      {
+        \"name\": \"team-developer\"
+      }
+    ],
+    \"authType\": \"password-secret\",
+    \"addons\": [
+      {
+        \"template\": {
+          \"name\": \"user-tmpl1\"
+        },
+        \"vars\": {
+          \"HOGE\": \"FUGA\"
+        }
+      }
+    ]
+  },
+  \"Status\": {
+    \"namespace\": {}
+  }
+}
+"""
+
+['Dashboard server [User] [UpdateUserAddons] ❌ fail with authorization by role: admin user cannot detach other team role 1']
+SnapShot = """
+permission_denied: denied to access 'otherteam' group"""
+
+['Dashboard server [User] [UpdateUserAddons] ❌ fail with authorization by role: admin user cannot update the user which has an other roles 1 1']
+SnapShot = """
+{
+  \"message\": \"Successfully updated\",
+  \"user\": {
+    \"name\": \"updad-noaddon\",
+    \"auth_type\": \"password-secret\",
+    \"addons\": [
+      {
+        \"template\": \"user-tmpl1\",
+        \"vars\": {
+          \"HOGE\": \"FUGA\"
+        }
+      }
+    ]
+  }
+}
+"""
+
+['Dashboard server [User] [UpdateUserAddons] ❌ fail with authorization by role: admin user cannot update the user which has an other roles 1 2']
+SnapShot = """
+{
+  \"Name\": \"updad-noaddon\",
+  \"Namespace\": \"\",
+  \"Spec\": {
+    \"authType\": \"password-secret\"
+  },
+  \"Status\": {
+    \"namespace\": {}
+  }
+}
+"""
+
+['Dashboard server [User] [UpdateUserAddons] ❌ fail with authorization by role: admin user cannot update the user which has an other roles 1 3']
+SnapShot = """
+{
+  \"Name\": \"updad-noaddon\",
+  \"Namespace\": \"\",
+  \"Spec\": {
+    \"authType\": \"password-secret\",
+    \"addons\": [
+      {
+        \"template\": {
+          \"name\": \"user-tmpl1\"
+        },
+        \"vars\": {
+          \"HOGE\": \"FUGA\"
+        }
+      }
+    ]
+  },
+  \"Status\": {
+    \"namespace\": {}
+  }
+}
+"""
+
+['Dashboard server [User] [UpdateUserAddons] ❌ fail with authorization by role: admin user cannot update the user which has an other roles 2 1']
+SnapShot = """
+{
+  \"message\": \"Successfully updated\",
+  \"user\": {
+    \"name\": \"updad-team-dev\",
+    \"roles\": [
+      \"team-developer\"
+    ],
+    \"auth_type\": \"password-secret\",
+    \"addons\": [
+      {
+        \"template\": \"user-tmpl1\",
+        \"vars\": {
+          \"HOGE\": \"FUGA\"
+        }
+      }
+    ]
+  }
+}
+"""
+
+['Dashboard server [User] [UpdateUserAddons] ❌ fail with authorization by role: admin user cannot update the user which has an other roles 2 2']
+SnapShot = """
+{
+  \"Name\": \"updad-team-dev\",
+  \"Namespace\": \"\",
+  \"Spec\": {
+    \"roles\": [
+      {
+        \"name\": \"team-developer\"
+      }
+    ],
+    \"authType\": \"password-secret\"
+  },
+  \"Status\": {
+    \"namespace\": {}
+  }
+}
+"""
+
+['Dashboard server [User] [UpdateUserAddons] ❌ fail with authorization by role: admin user cannot update the user which has an other roles 2 3']
+SnapShot = """
+{
+  \"Name\": \"updad-team-dev\",
+  \"Namespace\": \"\",
+  \"Spec\": {
+    \"roles\": [
+      {
+        \"name\": \"team-developer\"
+      }
+    ],
+    \"authType\": \"password-secret\",
+    \"addons\": [
+      {
+        \"template\": {
+          \"name\": \"user-tmpl1\"
+        },
+        \"vars\": {
+          \"HOGE\": \"FUGA\"
+        }
+      }
+    ]
+  },
+  \"Status\": {
+    \"namespace\": {}
+  }
+}
+"""
+
+['Dashboard server [User] [UpdateUserAddons] ❌ fail with authorization by role: admin user cannot update the user which has an other roles 3 1']
+SnapShot = """
+permission_denied: denied to access 'otherteam' group"""
+
+['Dashboard server [User] [UpdateUserAddons] ❌ fail with authorization by role: normal user cannot update addons 1']
+SnapShot = 'permission_denied'
+
+['Dashboard server [User] [UpdateUserAddons] ❌ fail with invalid request: no change 1']
+SnapShot = 'invalid_argument: no change'
+
+['Dashboard server [User] [UpdateUserAddons] ❌ fail with invalid request: user not found 1']
+SnapShot = 'not_found: user is not found'
+
 ['Dashboard server [User] [UpdateUserDisplayName] ✅ success in normal context: Entry: normal-user, user_name:"normal-user" display_name:"namechanged" 1']
 SnapShot = """
 {

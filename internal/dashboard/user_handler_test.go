@@ -551,4 +551,97 @@ var _ = Describe("Dashboard server [User]", func() {
 			Entry(nil, privilegedUser, &dashv1alpha1.UpdateUserPasswordRequest{UserName: privilegedUser, CurrentPassword: "password", NewPassword: "newPassword"}),
 		)
 	})
+
+	//==================================================================================
+	FDescribe("[UpdateUserAddons]", func() {
+		var (
+			noRoleUser                     string = "updad-noaddon"
+			teamDevRoleUser                string = "updad-team-dev"
+			otherteamDevRoleUser           string = "updad-otherteam-dev"
+			teamDevAndOtherteamDevRoleUser string = "updad-team-otherteam-dev"
+		)
+
+		run_test := func(loginUser string, req *dashv1alpha1.UpdateUserAddonsRequest) {
+			testUtil.CreateCosmoUser(noRoleUser, "", nil, cosmov1alpha1.UserAuthTypePasswordSecert)
+			testUtil.CreateCosmoUser(teamDevRoleUser, "",
+				[]cosmov1alpha1.UserRole{{Name: "team-developer"}}, cosmov1alpha1.UserAuthTypePasswordSecert)
+			testUtil.CreateCosmoUser(otherteamDevRoleUser, "",
+				[]cosmov1alpha1.UserRole{{Name: "otherteam-developer"}}, cosmov1alpha1.UserAuthTypePasswordSecert)
+			testUtil.CreateCosmoUser(teamDevAndOtherteamDevRoleUser, "",
+				[]cosmov1alpha1.UserRole{{Name: "team-developer"}, {Name: "otherteam-developer"}}, cosmov1alpha1.UserAuthTypePasswordSecert)
+			testUtil.CreateTemplate(cosmov1alpha1.TemplateLabelEnumTypeUserAddon, "user-tmpl1")
+
+			By("---------------test start----------------")
+			ctx := context.Background()
+			befUser, beferr := k8sClient.GetUser(ctx, req.UserName)
+
+			res, err := client.UpdateUserAddons(ctx, NewRequestWithSession(req, getSession(loginUser)))
+			if err == nil {
+				Ω(res.Msg).To(MatchSnapShot())
+				wsv1User, err := k8sClient.GetUser(ctx, req.UserName)
+				Expect(err).NotTo(HaveOccurred())
+				Ω(userSnap(befUser)).To(MatchSnapShot())
+				Ω(userSnap(wsv1User)).To(MatchSnapShot())
+			} else {
+				Ω(err.Error()).To(MatchSnapShot())
+				Expect(res).Should(BeNil())
+
+				_, afterr := k8sClient.GetUser(ctx, req.UserName)
+				if beferr != nil {
+					Expect(afterr).Should(Equal(beferr))
+				}
+			}
+			By("---------------test end---------------")
+		}
+
+		DescribeTable("✅ success in normal context:",
+			run_test,
+			Entry("priv attach cosmo-admin to normal-user", privilegedUser, &dashv1alpha1.UpdateUserAddonsRequest{
+				UserName: normalUser, Addons: []*dashv1alpha1.UserAddon{
+					{Template: "user-tmpl1", Vars: map[string]string{"HOGE": "FUGA"}},
+				}}),
+			Entry("admin attach custom-role to normal-user", adminUser, &dashv1alpha1.UpdateUserAddonsRequest{
+				UserName: noRoleUser, Addons: []*dashv1alpha1.UserAddon{
+					{Template: "user-tmpl1", Vars: map[string]string{"HOGE": "FUGA"}},
+				}}),
+			Entry("admin attach custom-role to other team user", adminUser, &dashv1alpha1.UpdateUserAddonsRequest{
+				UserName: otherteamDevRoleUser, Addons: []*dashv1alpha1.UserAddon{
+					{Template: "user-tmpl1", Vars: map[string]string{"HOGE": "FUGA"}},
+				}}),
+			Entry("priv detach role from priv", privilegedUser, &dashv1alpha1.UpdateUserAddonsRequest{
+				UserName: privilegedUser, Addons: []*dashv1alpha1.UserAddon{
+					{Template: "user-tmpl1", Vars: map[string]string{"HOGE": "FUGA"}},
+				}}),
+		)
+
+		DescribeTable("❌ fail with invalid request:",
+			run_test,
+			Entry("user not found", privilegedUser, &dashv1alpha1.UpdateUserAddonsRequest{
+				UserName: "XXXXXX", Addons: []*dashv1alpha1.UserAddon{
+					{Template: "user-tmpl1", Vars: map[string]string{"HOGE": "FUGA"}},
+				}}),
+			Entry("no change", privilegedUser, &dashv1alpha1.UpdateUserAddonsRequest{
+				UserName: privilegedUser, Addons: []*dashv1alpha1.UserAddon{}}),
+		)
+
+		DescribeTable("❌ fail with authorization by role:",
+			run_test,
+			Entry("normal user cannot update addons", normalUser, &dashv1alpha1.UpdateUserAddonsRequest{
+				UserName: noRoleUser, Addons: []*dashv1alpha1.UserAddon{
+					{Template: "user-tmpl1", Vars: map[string]string{"HOGE": "FUGA"}},
+				}}),
+			Entry("admin user cannot update the user which has an other roles 1", adminUser, &dashv1alpha1.UpdateUserAddonsRequest{
+				UserName: noRoleUser, Addons: []*dashv1alpha1.UserAddon{
+					{Template: "user-tmpl1", Vars: map[string]string{"HOGE": "FUGA"}},
+				}}),
+			Entry("admin user cannot update the user which has an other roles 2", adminUser, &dashv1alpha1.UpdateUserAddonsRequest{
+				UserName: teamDevRoleUser, Addons: []*dashv1alpha1.UserAddon{
+					{Template: "user-tmpl1", Vars: map[string]string{"HOGE": "FUGA"}},
+				}}),
+			Entry("admin user cannot update the user which has an other roles 3", adminUser, &dashv1alpha1.UpdateUserAddonsRequest{
+				UserName: teamDevAndOtherteamDevRoleUser, Addons: []*dashv1alpha1.UserAddon{
+					{Template: "user-tmpl1", Vars: map[string]string{"HOGE": "FUGA"}},
+				}}),
+		)
+	})
 })

@@ -132,6 +132,7 @@ func (c *Client) DeleteUser(ctx context.Context, username string) (*cosmov1alpha
 type UpdateUserOpts struct {
 	DisplayName *string
 	UserRoles   []string
+	Addons      *[]cosmov1alpha1.UserAddon
 }
 
 func (c *Client) UpdateUser(ctx context.Context, username string, opts UpdateUserOpts) (*cosmov1alpha1.User, error) {
@@ -168,6 +169,10 @@ func (c *Client) UpdateUser(ctx context.Context, username string, opts UpdateUse
 		}
 	}
 
+	if opts.Addons != nil {
+		user.Spec.Addons = *opts.Addons
+	}
+
 	if equality.Semantic.DeepEqual(before, user) {
 		logr.Debug().Info("no change", "user", before)
 		return nil, NewBadRequestError("no change", err)
@@ -176,6 +181,9 @@ func (c *Client) UpdateUser(ctx context.Context, username string, opts UpdateUse
 		logr.Debug().Info("name changed", "name", *opts.DisplayName)
 	}
 	if equality.Semantic.DeepEqual(before.Spec.Roles, user.Spec.Roles) {
+		logr.Debug().Info("role changed", "role", opts.UserRoles)
+	}
+	if equality.Semantic.DeepEqual(before.Spec.Addons, user.Spec.Addons) {
 		logr.Debug().Info("role changed", "role", opts.UserRoles)
 	}
 

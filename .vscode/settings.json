@@ -7,4 +7,5 @@
     "editor.codeActionsOnSave": {
         "source.organizeImports": true
     },
+    "typescript.tsdk": "./web/dashboard-ui/node_modules/typescript/lib",
 }
